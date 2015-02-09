@@ -8,6 +8,7 @@ var growl = require('growl');
 var program = require('commander');
 var less = require('less');
 var Manager = require('../lib/manager');
+var fs = require('fs');
 
 program
   .usage('[options] <source_dir> [destination_dir]')
@@ -85,9 +86,21 @@ function fileFilter(file) {
 }
 
 function check(file) {
-  if (fileFilter(file)) {
-    console.log('Change detected in ' + file);
-    manager.check(file);
+  if (fs.lstatSync(file).isDirectory()) {
+    var files = fs.readdirSync(file);
+
+    for(var i in files) {
+      if (fileFilter(files[i])) {
+        console.log('Change detected in ' + files[i]);
+        manager.check(file+'/'+files[i]);
+      }
+    }
+  }
+  else {
+    if (fileFilter(file)) {
+      console.log('Change detected in ' + file);
+      manager.check(file);
+    }
   }
 }
 
